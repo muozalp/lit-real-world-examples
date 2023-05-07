@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        background: powderblue;
+      }
+    </style>
+    <script
+      type="module"
+      src="https://unpkg.com/wired-elements?module"
+    ></script>
+    <link
+      href="https://fonts.googleapis.com/css?family=Material+Icons&display=block"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="demo"></div>
+
+    <script type="module">
+      import { html, render } from 'lit';
+      import '@material/mwc-icon/mwc-icon.js';
+      import '../book-flap.js';
+
+      const header = 'Hello owc World!';
+      render(html` <book-flap> </book-flap> `, document.querySelector('#demo'));
+    </script>
+  </body>
+</html>
