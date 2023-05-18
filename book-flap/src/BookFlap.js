@@ -5,11 +5,17 @@ import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 // import { mockContent } from './mock/PageContentMock.js';
 
+const PageStatus = {
+  ACTIVE: 'active',
+  PASSIVE: 'passive',
+  FLIPPED: 'flipped',
+};
+
 const pages = [
-  { page: 1, status: 'active' },
-  { page: 2, status: 'passive' },
-  { page: 3, status: 'passive' },
-  { page: 4, status: 'passive' },
+  { page: 1, status: PageStatus.PASSIVE },
+  { page: 2, status: PageStatus.PASSIVE },
+  { page: 3, status: PageStatus.PASSIVE },
+  { page: 4, status: PageStatus.PASSIVE },
 ];
 
 export class BookFlap extends LitElement {
@@ -82,56 +88,26 @@ export class BookFlap extends LitElement {
     .flipped .back {
       transform: rotateY(-180deg);
     }
-
-    .copyright {
-      color: var(--book-flap-text-color, #000);
-    }
-
-    /* Controller Buttons */
-    button {
-      border: none;
-      background-color: transparent;
-      cursor: pointer;
-      margin: 10px;
-      transition: transform 1s;
-    }
-
-    button:focus {
-      outline: none;
-    }
-
-    button:hover i {
-      color: #636363;
-    }
-
-    i {
-      font-size: 50px;
-      color: gray;
-    }
   `;
 
   static properties = {
     pages: { type: Array },
-    flipActive: { type: Boolean },
     navIndex: { type: Number },
-    bookStyle: { type: Object },
   };
 
   constructor() {
     super();
     this.bookStyle = {};
-    this.pages = pages;
+    this.pages = [...pages];
     this.navIndex = 0;
-    this.pages[this.navIndex].status = 'active';
+    this.pages[this.navIndex].status = PageStatus.ACTIVE;
   }
 
   openBook() {
-    this.bookOpened = true;
     this.bookStyle = { transform: 'translateX(50%)' };
   }
 
   closeBook(lastPage) {
-    this.bookOpened = false;
     if (!lastPage) {
       this.bookStyle = { transform: 'translateX(0%)' };
     } else {
@@ -146,50 +122,62 @@ export class BookFlap extends LitElement {
     if (this.navIndex === 0) {
       this.openBook();
     }
-    this.pages[this.navIndex].status = 'flipped';
+    this.pages[this.navIndex].status = PageStatus.FLIPPED;
     this.navIndex += 1;
     if (this.navIndex < this.pages.length)
-      this.pages[this.navIndex].status = 'active';
+      this.pages[this.navIndex].status = PageStatus.ACTIVE;
     else {
       this.closeBook(true);
     }
   }
 
   navPrev() {
+    if (this.navIndex === 0) return;
+
     if (this.navIndex === this.pages.length) this.openBook();
-    if (this.navIndex < this.pages.length)
-      this.pages[this.navIndex].status = 'passive';
+
+    if (this.navIndex < this.pages.length) {
+      this.pages[this.navIndex].status = PageStatus.PASSIVE;
+    }
+
     this.navIndex -= 1;
-    this.pages[this.navIndex].status = 'active';
+    this.pages[this.navIndex].status = PageStatus.ACTIVE;
+
     if (this.navIndex === 0) {
       this.closeBook(false);
     }
   }
 
-  pageContainer({ status, page }) {
-    const flipperStyle = { flipped: status === 'flipped' };
-    const zIndex = status !== 'flipped' ? this.pages.length - page : page;
+  pageContainer({ status, page: currentPage }) {
+    const flipperStyle = { flipped: status === PageStatus.FLIPPED };
+
+    const zIndex =
+      status !== PageStatus.FLIPPED
+        ? this.pages.length - currentPage
+        : currentPage;
+
     const paperStyle = {
       'z-index': zIndex,
     };
 
     const contentStyle = {
-      'background-image': `url(assets/images/pages/page${page}.jpg)`,
+      'background-image': `url(assets/images/pages/page${currentPage}.jpg)`,
       'background-position': 'center' /* Center the image */,
       'background-repeat': 'no-repeat' /* Do not repeat the image */,
       'background-size':
         'cover' /* Resize the background image to cover the entire container */,
     };
+
     return html`
       <div
         class="paper ${classMap(flipperStyle)}"
         style="${styleMap(paperStyle)}"
       >
         <div class="front" style="${styleMap(contentStyle)}">
-          <div class="content">Front Page ${page}</div>
+          <div class="content">Front Page ${currentPage}</div>
         </div>
         <div class="back">
-          <div class="content">Back Page ${page}</div>
+          <div class="content">Back Page ${currentPage}</div>
         </div>
       </div>
     `;
@@ -201,7 +189,7 @@ export class BookFlap extends LitElement {
       class="book"
       style="${styleMap(this.bookStyle)}"
     >
-      ${pages.map(item => this.pageContainer(item))}
+      ${this.pages.map(item => this.pageContainer(item))}
     </div>`;
   }
 
